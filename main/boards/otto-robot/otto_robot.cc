@@ -4,6 +4,8 @@
 #include <esp_lcd_panel_ops.h>
 #include <esp_lcd_panel_vendor.h>
 #include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <wifi_station.h>
 
 #include "application.h"
@@ -23,10 +25,43 @@
 #define TAG "OttoRobot"
 
 extern void InitializeOttoController();
+extern "C" const lv_image_dsc_t ricky_logo_240;
+
+class LogoOttoEmojiDisplay : public OttoEmojiDisplay {
+public:
+    LogoOttoEmojiDisplay(esp_lcd_panel_io_handle_t panel_io, esp_lcd_panel_handle_t panel, int width,
+                         int height, int offset_x, int offset_y, bool mirror_x, bool mirror_y,
+                         bool swap_xy)
+        : OttoEmojiDisplay(panel_io, panel, width, height, offset_x, offset_y, mirror_x, mirror_y,
+                           swap_xy) {}
+
+    void ShowBootLogo() {
+        DisplayLockGuard lock(this);
+        lv_obj_t* img = lv_img_create(lv_layer_top());
+        if (img == nullptr) {
+            ESP_LOGE(TAG, "Failed to create boot logo image");
+            return;
+        }
+
+        LV_IMG_DECLARE(ricky_logo_240);
+        lv_img_set_src(img, &ricky_logo_240);
+        lv_obj_center(img);
+
+        const TickType_t end_time = xTaskGetTickCount() + pdMS_TO_TICKS(3000);
+        while (xTaskGetTickCount() < end_time) {
+            lv_task_handler();
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+
+        if (lv_obj_is_valid(img)) {
+            lv_obj_del(img);
+        }
+    }
+};
 
 class OttoRobot : public WifiBoard {
 private:
-    LcdDisplay* display_;
+    LogoOttoEmojiDisplay* display_;
     PowerManager* power_manager_;
     Button boot_button_;
     WebSocketControlServer* ws_control_server_;
@@ -75,7 +110,7 @@ private:
         esp_lcd_panel_swap_xy(panel, DISPLAY_SWAP_XY);
         esp_lcd_panel_mirror(panel, DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y);
 
-        display_ = new OttoEmojiDisplay(
+        display_ = new LogoOttoEmojiDisplay(
             panel_io, panel, DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_OFFSET_X, DISPLAY_OFFSET_Y,
             DISPLAY_MIRROR_X, DISPLAY_MIRROR_Y, DISPLAY_SWAP_XY);
     }
@@ -124,6 +159,7 @@ public:
         InitializeOttoController();
         ws_control_server_ = nullptr;
         GetBacklight()->RestoreBrightness();
+        display_->ShowBootLogo();
     }
 
     virtual AudioCodec* GetAudioCodec() override {
