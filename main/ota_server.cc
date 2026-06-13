@@ -45,6 +45,8 @@ esp_err_t OtaServer::Start(int port) {
 
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
   config.server_port = port;
+  // Avoid ctrl_port clash when another httpd is already running (e.g. Otto /ws on 8080).
+  config.ctrl_port = ESP_HTTPD_DEF_CTRL_PORT + 1;
   esp_err_t ret = httpd_start(&server_handle_, &config);
   if (ret != ESP_OK) {
     ESP_LOGE(kTag, "Failed to start OTA Webserver: %s", esp_err_to_name(ret));
