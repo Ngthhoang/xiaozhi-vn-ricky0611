@@ -271,7 +271,10 @@ void McpServer::AddUserOnlyTools() {
                 return true;
             });
         
-        AddUserOnlyTool("self.screen.preview_image", "Preview an image on the screen",
+        AddTool("self.screen.preview_image",
+            "Download an image from URL and display it full-screen on the robot LCD. "
+            "Use for English picture game: call with image_url before asking the question. "
+            "Supports PNG/JPEG URLs (HTTPS).",
             PropertyList({
                 Property("url", kPropertyTypeString)
             }),
