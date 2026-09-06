@@ -11,6 +11,10 @@
 #include <esp_lvgl_port.h>
 #include <font_awesome.h>
 
+#if CONFIG_FACE_LED_ENABLE
+#include "face_led.h"
+#endif
+
 #define TAG "OledDisplay"
 
 LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
@@ -350,6 +354,9 @@ void OledDisplay::SetEmotion(const char* emotion) {
     } else {
         lv_label_set_text(emotion_label_, FONT_AWESOME_NEUTRAL);
     }
+#if CONFIG_FACE_LED_ENABLE
+    face_led_set_from_emotion(emotion);
+#endif
 }
 
 void OledDisplay::SetTheme(Theme* theme) {
