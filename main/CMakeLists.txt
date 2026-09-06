@@ -546,6 +546,29 @@ elseif(CONFIG_BOARD_TYPE_OTTO_ROBOT)
     set(BOARD_TYPE "otto-robot")
     set(BUILTIN_TEXT_FONT font_puhui_16_4)
     set(BUILTIN_ICON_FONT font_awesome_16_4)
+elseif(CONFIG_BOARD_TYPE_RICKY_WALLE)
+    set(BOARD_TYPE "ricky-walle")
+    set(BUILTIN_TEXT_FONT font_puhui_16_4)
+    set(BUILTIN_ICON_FONT font_awesome_16_4)
+elseif(CONFIG_BOARD_TYPE_RICKY_IR_CONTROL)
+    set(BOARD_TYPE "ricky-ir-control")
+    set(BUILTIN_TEXT_FONT font_puhui_basic_14_1)
+    set(BUILTIN_ICON_FONT font_awesome_14_1)
+elseif(CONFIG_BOARD_TYPE_RICKY_WAR_TANK)
+    set(BOARD_TYPE "ricky-war-tank")
+    set(BUILTIN_TEXT_FONT font_puhui_basic_14_1)
+    set(BUILTIN_ICON_FONT font_awesome_14_1)
+    set(DEFAULT_EMOJI_COLLECTION twemoji_32)
+elseif(CONFIG_BOARD_TYPE_RICKY_HUNONIC_ROBOT)
+    set(BOARD_TYPE "ricky-hunonic-robot")
+    set(BUILTIN_TEXT_FONT font_puhui_basic_14_1)
+    set(BUILTIN_ICON_FONT font_awesome_14_1)
+    set(DEFAULT_EMOJI_COLLECTION twemoji_32)
+elseif(CONFIG_BOARD_TYPE_RICKY_S3_MINI)
+    set(BOARD_TYPE "ricky-s3-mini")
+    set(BUILTIN_TEXT_FONT font_puhui_basic_14_1)
+    set(BUILTIN_ICON_FONT font_awesome_14_1)
+    set(DEFAULT_EMOJI_COLLECTION twemoji_32)
 elseif(CONFIG_BOARD_TYPE_ELECTRON_BOT)
     set(BOARD_TYPE "electron-bot")
     set(BUILTIN_TEXT_FONT font_puhui_20_4)
@@ -605,8 +628,19 @@ endif()
 file(GLOB BOARD_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD_TYPE}/*.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD_TYPE}/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD_TYPE}/assets/*.c
 )
 list(APPEND SOURCES ${BOARD_SOURCES})
+
+# Shared OLED eye-animation face — only compiled for boards that use it (eye assets are ~250KB).
+if(BOARD_TYPE STREQUAL "ricky-war-tank" OR BOARD_TYPE STREQUAL "ricky-s3-mini" OR BOARD_TYPE STREQUAL "ricky-hunonic-robot")
+    file(GLOB EYE_FACE_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/display/eye_face/*.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/display/eye_face/assets/*.c
+    )
+    list(APPEND SOURCES ${EYE_FACE_SOURCES})
+    list(APPEND INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/display/eye_face)
+endif()
 
 # Select audio processor according to Kconfig
 if(CONFIG_USE_AUDIO_PROCESSOR)
@@ -730,6 +764,18 @@ endif()
 
 file(GLOB COMMON_SOUNDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/common/*.ogg)
 file(GLOB WEB_BROWERS ${CMAKE_CURRENT_SOURCE_DIR}/assets/web_browser/*.html)
+if(CONFIG_BOARD_TYPE_RICKY_WALLE)
+    list(APPEND WEB_BROWERS "${CMAKE_CURRENT_SOURCE_DIR}/boards/ricky-walle/walle_control.html")
+endif()
+if(CONFIG_BOARD_TYPE_RICKY_WAR_TANK)
+    list(APPEND WEB_BROWERS
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/ricky-war-tank/tank_control.html"
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/ricky-war-tank/tank_running.ogg")
+endif()
+if(CONFIG_BOARD_TYPE_RICKY_HUNONIC_ROBOT)
+    list(APPEND WEB_BROWERS
+        "${CMAKE_CURRENT_SOURCE_DIR}/boards/ricky-hunonic-robot/hunonic_control.html")
+endif()
 
 # If target chip is ESP32, exclude specific files to avoid build errors
 if(CONFIG_IDF_TARGET_ESP32)

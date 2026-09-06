@@ -434,6 +434,10 @@ choice BOARD_TYPE
         default "partitions/v2/16m_otto_robot.csv"
         depends on BOARD_TYPE_OTTO_ROBOT
         string "OttoRobot partition table: 16m_otto_robot.csv"
+    config BOARD_TYPE_RICKY_WALLE
+        bool "ricky_wallE"
+        depends on IDF_TARGET_ESP32S3
+        select HTTPD_WS_SUPPORT
     config BOARD_TYPE_ELECTRON_BOT
         bool "electronBot"
         depends on IDF_TARGET_ESP32S3
@@ -458,6 +462,35 @@ choice BOARD_TYPE
     config BOARD_TYPE_AIPI_LITE
         bool "AIPI-Lite"
         depends on IDF_TARGET_ESP32S3
+    config BOARD_TYPE_RICKY_IR_CONTROL
+        bool "RICKY IR Control (XH-S3E-AI, 0.96 OLED I2C, IR TX GPIO43)"
+        depends on IDF_TARGET_ESP32S3
+    config BOARD_TYPE_RICKY_WAR_TANK
+        bool "Ricky War Tank (XH-S3E-AI, OLED + 2x N20 L298)"
+        depends on IDF_TARGET_ESP32S3
+        select HTTPD_WS_SUPPORT
+    config BOARD_TYPE_RICKY_HUNONIC_ROBOT
+        bool "Ricky Hunonic Robot (XH-S3E-AI, OLED + 2x N20 L298 gait)"
+        depends on IDF_TARGET_ESP32S3
+        select HTTPD_WS_SUPPORT
+    config BOARD_TYPE_RICKY_S3_MINI
+        bool "Ricky S3 Mini (XH-S3E-AI, OLED mat nhay + nhac, khong ngoai vi)"
+        depends on IDF_TARGET_ESP32S3
+endchoice
+
+config PARTITION_TABLE_CUSTOM_FILENAME
+    default "partitions/v2/16m_otto_robot.csv" if BOARD_TYPE_RICKY_WALLE || BOARD_TYPE_RICKY_WAR_TANK || BOARD_TYPE_RICKY_HUNONIC_ROBOT
+
+choice IR_ROBOT_DEFAULT
+    depends on BOARD_TYPE_RICKY_IR_CONTROL
+    prompt "Default IR robot type"
+    default IR_ROBOT_DEFAULT_R839
+    help
+        Active robot type after boot (also persisted in NVS via self.ir.set_robot_type).
+    config IR_ROBOT_DEFAULT_DOG
+        bool "Dog robot"
+    config IR_ROBOT_DEFAULT_R839
+        bool "Robot 839"
 endchoice
 
 choice
